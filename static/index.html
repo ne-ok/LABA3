@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Устанавливает кодировку символов для страницы в UTF-8 -->
+        <meta charset="UTF-8" />
+        <!-- Устанавливает метатег viewport для управления макетом страницы на
+        мобильных устройствах -->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <!-- Заголовок страницы, отображаемый на вкладке браузера -->
+        <title>User Management</title>
+        <!-- Стили страницы -->
+        <link rel="stylesheet" href="styles.css">
+    </head>
+    <body>
+        <!-- Основной заголовок страницы -->
+        <h1>Шилова Ксения</h1>
+        <h1>User Management</h1>
+
+        <!-- Раздел для отображения списка пользователей -->
+        <div>
+            <!-- Заголовок для списка пользователей -->
+            <h2>Users</h2>
+            <!-- Ненумерованный список, в который будет добавлен список пользователей-->
+
+            <ul id="user-list"></ul>
+        </div>
+        
+        <div>
+            <h2>Login</h2>
+            <form id="login-form">
+                <input type="text" id="login-username" placeholder="Username" required />
+                <input type="password" id="login-password" placeholder="Password" required />
+                <button type="submit">Login</button>
+            </form>
+        </div>
+
+        <!-- Раздел для создания нового пользователя -->
+        <div>
+            <!-- Заголовок для формы создания пользователя -->
+            <h2>Create User</h2>
+            <!-- Форма для создания нового пользователя -->
+            <form id="create-user-form">
+                <!-- Поле ввода для имени пользователя -->
+                <input type="text" id="username" placeholder="Username" required />
+                <!-- Поле ввода для email пользователя -->
+                <input type="email" id="email" placeholder="Email" required />
+                <!-- Поле ввода для полного имени пользователя -->
+                <input type="text" id="full_name" placeholder="Full Name" />
+                <!-- Поле ввода для пароля пользователя -->
+                <input type="password" id="password" placeholder="Password" required />
+                <!-- Кнопка для отправки формы и создания пользователя -->
+                <button type="submit">Create User</button>
+            </form>
+        </div>
+
+        <!-- Раздел для информации о текущем пользователе -->
+        <div>
+            <h2>Current User Info</h2>
+            <button id="get-user-info-btn">Get My Info</button>
+        </div>
+
+        <!-- Раздел для обновления существующего пользователя -->
+        <div>
+            <!-- Заголовок для формы обновления пользователя -->
+            <h2>Update User</h2>
+            <!-- Форма для обновления данных пользователя -->
+            <form id="update-user-form">
+                <!-- Поле ввода для ID пользователя, которого нужно обновить -->
+                <input type="number" id="update-user-id" placeholder="User ID" required
+                />
+                <!-- Поле ввода для нового имени пользователя -->
+                <input type="text" id="update-username" placeholder="Username" />
+                <!-- Поле ввода для нового email пользователя -->
+                <input type="email" id="update-email" placeholder="Email" />
+                <!-- Поле ввода для нового полного имени пользователя -->
+
+                <input type="text" id="update-full_name" placeholder="Full Name" />
+                <!-- Поле ввода для нового пароля пользователя -->
+                <input type="password" id="update-password" placeholder="Password" />
+                <!-- Кнопка для отправки формы и обновления пользователя -->
+                <button type="submit">Update User</button>
+            </form>
+        </div>
+
+        <!-- Раздел для удаления пользователя -->
+        <div>
+            <!-- Заголовок для формы удаления пользователя -->
+            <h2>Delete User</h2>
+            <!-- Форма для удаления пользователя по ID -->
+            <form id="delete-user-form">
+                <!-- Поле ввода для ID пользователя, которого нужно удалить -->
+                <input type="number" id="delete-user-id" placeholder="User ID" required
+                />
+                <!-- Кнопка для отправки формы и удаления пользователя -->
+                <button type="submit">Delete User</button>
+            </form>
+        </div>
+        <script>
+            const apiBaseUrl = 'http://127.0.0.1:8000';
+            let accessToken = '';
+            async function fetchUsers() {
+                const response = await fetch(`${apiBaseUrl}/users/`);
+                const users = await response.json();
+                const userList = document.getElementById("user-list");
+                userList.innerHTML = "";
+                users.forEach((user) => {
+                    const li = document.createElement("li");
+                    li.textContent = `${user.id}: ${user.username} (${user.email})`;
+                    userList.appendChild(li);
+                });
+            }
+            document.getElementById("create-user-form").addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const username = document.getElementById("username").value;
+                const email = document.getElementById("email").value;
+                const full_name = document.getElementById("full_name").value;
+                const password = document.getElementById("password").value;
+                const response = await fetch(`${apiBaseUrl}/register/`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ username, email, full_name, password }),
+                });
+            
+                if (response.ok) {
+                    alert("User created successfully");
+                    fetchUsers();
+                } else {
+                    alert("Error creating user");
+                }
+            });
+            document.getElementById("update-user-form").addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const userId = document.getElementById("update-user-id").value;
+                const username = document.getElementById("update-username").value;
+                const email = document.getElementById("update-email").value;
+                const full_name = document.getElementById("update-full_name").value;
+                const password = document.getElementById("update-password").value;
+                const response = await fetch(`${apiBaseUrl}/users/${userId}`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${accessToken}` // Добавляем токен
+                    },
+                    body: JSON.stringify({ username, email, full_name, password }),
+                });
+                if (response.ok) {
+                    alert("User updated successfully");
+                    fetchUsers();
+                } else {
+                    alert("Error updating user");
+                }
+            });
+            document.getElementById("delete-user-form").addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const userId = document.getElementById("delete-user-id").value;
+                const response = await fetch(`${apiBaseUrl}/users/${userId}`, {
+                    method: "DELETE",
+                    headers: {
+                        "Authorization": `Bearer ${accessToken}` // Добавляем токен
+                    }
+                });
+                if (response.ok) {
+                    alert("User deleted successfully");
+                    fetchUsers();
+                } else {
+                    const errorData = await response.json();
+                    alert(`Error deleting user: ${errorData.detail || 'Unknown error'}`);
+                }
+            });
+            fetchUsers();
+            
+            // Функция для получения информации о текущем пользователе
+            async function getCurrentUserInfo() {
+                if (!accessToken) {
+                    alert("Please login first");
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`${apiBaseUrl}/users/me`, {
+                        headers: {
+                            "Authorization": `Bearer ${accessToken}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        const userData = await response.json();
+                        alert(JSON.stringify(userData, null, 2));
+                    } else {
+                        const errorData = await response.json();
+                        alert(`Error: ${errorData.detail || 'Unknown error'}`);
+                    }
+                } catch (error) {
+                    alert("Error fetching user info:", error);
+                }
+            }
+            // Обработчик для кнопки получения информации о пользователе
+            document.getElementById("get-user-info-btn").addEventListener("click", getCurrentUserInfo);
+
+            document.getElementById("login-form").addEventListener("submit", async function (event) {
+                event.preventDefault();
+                const username = document.getElementById("login-username").value;
+                const password = document.getElementById("login-password").value;
+                const headers = {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                };
+                const body = new URLSearchParams({
+                    grant_type: "password",
+                    username: username,
+                    password: password,
+                });
+                try {
+                    const response = await fetch(`${apiBaseUrl}/token`, {
+                        method: "POST",
+                        headers: headers,
+                        body: body,
+                    });
+                    const data = await response.json();
+                    console.log(data);
+                    if (data.access_token) {
+                        accessToken = data.access_token; // Сохраняем токен
+                        localStorage.setItem('accessToken', accessToken); // Можно сохранить в localStorage
+                        alert("Successful entry! Token:" + data.access_token);
+                    } else {
+                        alert("Ошибка входа!");
+                    }
+                } catch (error) {
+                    console.error("Ошибка запроса:", error);
+                    alert("Ошибка запроса!");
+                }
+            });
+            async function getUserInfo() {
+                if (!accessToken) {
+                    document.getElementById('userInfo').textContent = "Сначала войдите в систему!";
+                    return;
+                }
+                const response = await fetch(`${apiBaseUrl}/users/me`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                const data = await response.json();
+                document.getElementById('userInfo').textContent = JSON.stringify(data, null, 2);
+            }
+        </script>
+    </body>
+</html>
