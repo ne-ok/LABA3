@@ -1,0 +1,5 @@
+fastapi==0.95.2
+uvicorn==0.22.0
+aioredis==2.0.1
+python-jose==3.3.0
+passlib==1.7.4
